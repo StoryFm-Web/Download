@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Server Critical Alert</title>
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff3e3e; /* Urgent Red */
+            --secondary: #ffa500; /* Warning Yellow */
+            --dark-bg: #09090b;
+            --card-bg: rgba(22, 22, 26, 0.9);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            color: var(--text-main);            
+            display: flex;
+            align-items: center; /* Vertically center */
+            justify-content: center; /* Horizontally center */
+            min-height: 110vh; /* Full screen height */
+            width: 100%;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Background Animated Mesh */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(255, 62, 62, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 62, 62, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px; /* Optimal mobile width */
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Warning Strip */
+        .alert-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
+            background-size: 200% 100%;
+            animation: gradientMove 2s infinite linear;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        .icon-box {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px rgba(255, 62, 62, 0.4));
+            animation: pulseIcon 1.5s infinite;
+        }
+
+        @keyframes pulseIcon {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #fff, #ccc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* Countdown Area */
+        .timer-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .timer-label {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .time-val {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .time-txt {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .colon {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+            margin-top: -2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.3; } }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin: 25px 0;
+            text-align: left;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .progress-bg {
+            height: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #ff6b6b);
+            width: 92%;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 62, 62, 0.5);
+        }
+
+        /* UPI Section */
+        .upi-card {
+            background: linear-gradient(145deg, rgba(255, 165, 0, 0.08), rgba(255, 62, 62, 0.05));
+            border: 1px solid rgba(255, 165, 0, 0.15);
+            border-radius: 20px;
+            padding: 22px;
+            position: relative;
+        }
+
+        .upi-label {
+            font-size: 0.85rem;
+            color: var(--secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .upi-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 14px 15px;
+            border-radius: 12px;
+            border: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .upi-id {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+            text-align: left;
+        }
+
+        .copy-btn {
+            background: var(--secondary);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:active { transform: scale(0.92); }
+
+        .note {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 15px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* Terminated State */
+        .terminated-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .term-icon {
+            font-size: 5rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .term-text {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        @media (max-width: 400px) {
+            .container { padding: 30px 18px; }
+            h1 { font-size: 1.5rem; }
+            .time-val { font-size: 1.8rem; }
+            .upi-id { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+
+    <div class="container" id="mainContainer">
+        <div class="alert-strip"></div>
+        
+        <div class="icon-box">
+            <i class="fas fa-server"></i>
+        </div>
+
+        <h1>SERVER ALERT</h1>
+        <p class="subtitle">Daily 10,000+ members visit kar rahe hain, jiske vajah se server limit khatam ho rahi hai. Naya bada server lene ke liye aapka support chahiye.</p>
+        
+        <p class="subtitle" style="color: #fff; font-weight: 500; font-size: 0.85rem;">Donate karke screenshot Telegram par bhejein, aapko license provide kar diya jayega.</p>
+
+        <div class="timer-box">
+            <div class="timer-label"><i class="far fa-clock"></i> Time Remaining (3 Jan)</div>
+            <div class="countdown">
+                <div class="time-unit">
+                    <span class="time-val" id="hours">00</span>
+                    <span class="time-txt">HRS</span>
+                </div>
+                <span class="colon">:</span>
+                <div class="time-unit">
+                    <span class="time-val" id="minutes">00</span>
+                    <span class="time-txt">MIN</span>
+                </div>
+                <span class="colon">:</span>
+                <div class="time-unit">
+                    <span class="time-val" id="seconds">00</span>
+                    <span class="time-txt">SEC</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-wrapper">
+            <div class="progress-info">
+                <span>Server Load</span>
+                <span style="color: var(--primary); font-weight: 700;">98% CRITICAL</span>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="upi-card">
+            <div class="upi-label"><i class="fas fa-shield-alt"></i> SUPPORT VIA UPI</div>
+            <div class="upi-box">
+                <span class="upi-id" id="upiText">storyfmofficial@axl</span>
+                <button class="copy-btn" onclick="copyUPI()">COPY</button>
+            </div>
+            <p class="note">Server will auto-restart immediately after the target is met.</p>
+        </div>
+        
+        <div style="margin-top: 25px; font-size: 0.65rem; color: #444; letter-spacing: 1px;">
+            SESSION ID: #IND-9928-X
+        </div>
+
+        <!-- Terminated Screen overlay -->
+        <div class="terminated-overlay" id="terminatedScreen">
+            <i class="fas fa-ban term-icon"></i>
+            <div class="term-text">SERVER TERMINATED</div>
+            <p style="color: #666; margin-top: 15px; font-size: 0.9rem;">The contribution window has closed.</p>
+        </div>
+    </div>
+
+    <script>
+        function initCountdown() {
+            // TARGET DATE: 3rd January 2026, at 23:59:59 (End of Day)
+            // Using ISO format with Timezone Offset (+05:30 for India Standard Time)
+            // This ensures "Google Timing" (Standard Time) regardless of user device settings.
+            const targetDate = new Date("2026-01-03T23:59:59+05:30").getTime();
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    showTerminatedState();
+                } else {
+                    // Calculate Total Hours remaining (can be > 24)
+                    const hours = Math.floor(distance / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+                    document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+                    document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+                }
+            }, 1000);
+        }
+
+        function showTerminatedState() {
+            document.getElementById('hours').innerText = "00";
+            document.getElementById('minutes').innerText = "00";
+            document.getElementById('seconds').innerText = "00";
+            document.getElementById('terminatedScreen').style.display = 'flex';
+            const btn = document.querySelector('.copy-btn');
+            btn.disabled = true;
+            btn.innerText = "CLOSED";
+            btn.style.background = "#333";
+            btn.style.color = "#666";
+        }
+
+        function copyUPI() {
+            const upiText = document.getElementById("upiText").innerText;
+            navigator.clipboard.writeText(upiText).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED!";
+                btn.style.background = "#4CAF50";
+                btn.style.color = "white";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "var(--secondary)";
+                    btn.style.color = "black";
+                }, 2000);
+            });
+        }
+
+        window.onload = initCountdown;
+    </script>
+</body>
+</html>
